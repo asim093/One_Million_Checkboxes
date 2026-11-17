@@ -12,7 +12,6 @@ Built with **Node.js**, **Express**, **Socket.IO** and **Redis/Valkey**.
 - Simple per-user rate limiting (one change every 5.5 seconds)
 - Health check endpoint
 
-> The grid currently has **100** checkboxes. Change `checkboxes_count` in [index.js](index.js) to scale it up.
 
 ## Tech Stack
 

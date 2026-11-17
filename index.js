@@ -6,7 +6,7 @@ import express from 'express'
 import { Server } from "socket.io";
 
 
-const checkboxes_count = 100
+const checkboxes_count = 1000000
 const checkbox_key = "checkbox-state:v2"
 
 async function main() {
