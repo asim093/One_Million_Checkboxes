@@ -5,16 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1 Million Checkboxes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-0: #05070d;
-            --bg-1: #0a0e1a;
-            --border: #1c2740;
-            --blue-1: #3b82f6;
-            --blue-2: #60a5fa;
-            --blue-glow: #2563eb;
-            --ink-0: #eaf1ff;
-            --ink-1: #8ea2c6;
+            --bg-0: #050505;
+            --bg-1: #0d0d0d;
+            --border: #232323;
+            --green-1: #84f01a;
+            --green-2: #a6ff4d;
+            --green-glow: #5cc400;
+            --ink-0: #ffffff;
+            --ink-1: #a3a3a3;
+            --card: #111111;
+            --font-display: "Syne", "Segoe UI", system-ui, sans-serif;
         }
 
         * {
@@ -25,13 +30,14 @@
         body {
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         body {
             min-height: 100vh;
             background:
-                radial-gradient(circle at 15% 0%, rgba(37, 99, 235, 0.20), transparent 45%),
-                radial-gradient(circle at 85% 10%, rgba(96, 165, 250, 0.14), transparent 40%),
+                radial-gradient(circle at 15% 0%, rgba(132, 240, 26, 0.12), transparent 45%),
+                radial-gradient(circle at 85% 10%, rgba(166, 255, 77, 0.07), transparent 40%),
                 linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
             background-attachment: fixed;
             color: var(--ink-0);
@@ -53,9 +59,25 @@
         }
 
         .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--blue-2);
+            color: var(--ink-0);
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            background: var(--green-1);
+            color: #050505;
+            font-size: 1rem;
+            font-weight: 800;
         }
 
         .auth-section {
@@ -64,65 +86,257 @@
             align-items: center;
         }
 
-        .user-display {
-            font-size: 0.9rem;
-            color: var(--ink-1);
+        .user-avatar {
+            display: none;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--green-1);
+            background: var(--card);
+            color: var(--green-1);
+            font-family: var(--font-display);
+            font-weight: 700;
+            object-fit: cover;
+            overflow: hidden;
         }
 
-        .auth-btn {
-            padding: 8px 20px;
-            border: 1px solid var(--blue-1);
-            background: transparent;
-            color: var(--blue-2);
-            border-radius: 6px;
+        .user-avatar.visible {
+            display: grid;
+        }
+
+        /* Profile avatar with hover popup */
+        .profile {
+            position: relative;
+            display: none;
+            outline: none;
+        }
+
+        .profile.visible {
+            display: block;
+        }
+
+        .profile .user-avatar {
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
 
-        .auth-btn:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: var(--blue-2);
-            color: var(--blue-1);
+        .profile:hover .user-avatar,
+        .profile:focus-within .user-avatar {
+            box-shadow: 0 0 0 4px rgba(132, 240, 26, 0.18);
+            transform: scale(1.05);
         }
 
-        .logout-btn {
-            border-color: #ef4444;
+        .profile-popup {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            z-index: 800;
+            padding-top: 12px; /* invisible bridge so the popup stays open while moving the mouse onto it */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.96);
+            transform-origin: top right;
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+        }
+
+        .profile:hover .profile-popup,
+        .profile:focus-within .profile-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            transition-delay: 0s;
+        }
+
+        .popup-card {
+            min-width: 230px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: rgba(17, 17, 17, 0.97);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .popup-user {
+            padding: 10px 12px 12px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .popup-name {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--ink-0);
+            overflow-wrap: anywhere;
+        }
+
+        .popup-email {
+            margin-top: 2px;
+            font-size: 0.8rem;
+            color: var(--ink-1);
+            overflow-wrap: anywhere;
+        }
+
+        .popup-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--ink-0);
+            font-size: 0.9rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+        }
+
+        .popup-item:hover,
+        .popup-item:focus-visible {
+            background: rgba(132, 240, 26, 0.12);
+            color: var(--green-1);
+            padding-left: 16px;
+            outline: none;
+        }
+
+        .popup-item.danger:hover,
+        .popup-item.danger:focus-visible {
+            background: rgba(239, 68, 68, 0.12);
             color: #fca5a5;
         }
 
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #fca5a5;
-            color: #ef4444;
+        /* ============ HEADER ============ */
+        /* Lime scrolling strip */
+        .marquee {
+            width: 100%;
+            overflow: hidden;
+            background: var(--green-1);
+            color: #050505;
+            border-top: 1px solid var(--green-2);
+            border-bottom: 1px solid var(--green-2);
         }
 
-        /* ============ HEADER ============ */
+        .marquee-track {
+            display: flex;
+            width: max-content;
+            animation: marquee 28s linear infinite;
+        }
+
+        .marquee-track span {
+            padding: 12px 22px;
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        @keyframes marquee {
+            to { transform: translateX(-50%); }
+        }
+
         header {
+            position: relative;
+            overflow: hidden;
             width: 100%;
             max-width: 900px;
             text-align: center;
-            padding: 48px 20px 24px;
+            padding: 56px 20px 28px;
+        }
+
+        /* Big faint word behind the title: SVG textLength stretches it to the full header width */
+        .watermark {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: auto;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .watermark text {
+            font-family: var(--font-display);
+            font-weight: 800;
+            fill: rgba(255, 255, 255, 0.035);
         }
 
         h1 {
+            position: relative;
             margin: 0;
-            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.4rem);
             font-weight: 800;
             letter-spacing: -0.02em;
-            background: linear-gradient(90deg, var(--blue-2), #93c5fd 40%, var(--blue-1));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: var(--ink-0);
+        }
+
+        h1 em {
+            font-style: normal;
+            color: var(--green-1);
         }
 
         .subtitle {
-            margin: 10px 0 0;
+            position: relative;
+            margin: 12px 0 0;
             color: var(--ink-1);
             font-size: 0.95rem;
             letter-spacing: 0.01em;
+        }
+
+        /* ============ STAT CARDS ============ */
+        .stats {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 0 16px 24px;
+        }
+
+        .stats.hidden {
+            display: none;
+        }
+
+        .stat-card {
+            position: relative;
+            padding: 18px 20px 18px 24px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--card);
+            overflow: hidden;
+        }
+
+        .stat-card::before,
+        #container::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 18px;
+            bottom: 18px;
+            width: 4px;
+            border-radius: 0 4px 4px 0;
+            background: var(--green-1);
+        }
+
+        .stat-label {
+            color: var(--ink-1);
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            margin-top: 6px;
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--ink-0);
+        }
+
+        .stat-value.accent {
+            color: var(--green-1);
         }
 
         /* ============ LOGIN OVERLAY ============ */
@@ -132,7 +346,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(5, 7, 13, 0.9);
+            background: rgba(5, 5, 5, 0.92);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -144,7 +358,7 @@
         }
 
         .login-card {
-            background: linear-gradient(135deg, rgba(10, 14, 26, 0.95) 0%, rgba(5, 7, 13, 0.95) 100%);
+            background: linear-gradient(135deg, rgba(18, 18, 18, 0.96) 0%, rgba(8, 8, 8, 0.96) 100%);
             border: 1px solid var(--border);
             padding: 40px;
             border-radius: 14px;
@@ -157,7 +371,7 @@
         .login-card h2 {
             margin: 0 0 30px;
             font-size: 1.8rem;
-            background: linear-gradient(90deg, var(--blue-2), var(--blue-1));
+            background: linear-gradient(90deg, var(--green-2), var(--green-1));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -171,9 +385,9 @@
         .login-btn {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(90deg, var(--blue-1), var(--blue-glow));
+            background: linear-gradient(90deg, var(--green-1), var(--green-glow));
             border: none;
-            color: white;
+            color: #050505;
             border-radius: 6px;
             font-size: 1rem;
             font-weight: 600;
@@ -202,8 +416,8 @@
         }
 
         .back-btn:hover {
-            border-color: var(--blue-1);
-            color: var(--blue-2);
+            border-color: var(--green-1);
+            color: var(--green-2);
         }
 
         /* ============ MAIN CONTENT ============ */
@@ -217,15 +431,22 @@
             display: none;
         }
 
+        /* Virtualized grid: #container is as tall as all rows, #viewport holds only the visible ones */
         #container {
+            position: relative;
+            border-radius: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        #viewport {
+            position: absolute;
+            left: 0;
+            right: 0;
             display: grid;
-            grid-template-columns: repeat(auto-fill, 24px);
             gap: 6px;
             justify-content: center;
-            padding: 20px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.015);
-            border: 1px solid var(--border);
         }
 
         #container input[type="checkbox"] {
@@ -235,20 +456,20 @@
             height: 22px;
             margin: 0;
             border-radius: 5px;
-            border: 1px solid #263252;
-            background: #0b0f1c;
+            border: 1px solid #2b2b2b;
+            background: #0a0a0a;
             cursor: pointer;
             transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
         }
 
         #container input[type="checkbox"]:hover {
-            border-color: var(--blue-2);
+            border-color: var(--green-2);
             transform: scale(1.1);
         }
 
         #container input[type="checkbox"]:checked {
-            background: linear-gradient(135deg, var(--blue-1), var(--blue-glow));
-            border-color: var(--blue-2);
+            background: linear-gradient(135deg, var(--green-1), var(--green-glow));
+            border-color: var(--green-2);
         }
 
         #container input[type="checkbox"]:checked::after {
@@ -257,35 +478,106 @@
             width: 7px;
             height: 12px;
             margin: 2px auto;
-            border-right: 2px solid #05070d;
-            border-bottom: 2px solid #05070d;
+            border-right: 2px solid #050505;
+            border-bottom: 2px solid #050505;
             transform: rotate(45deg) translateY(-1px);
         }
 
+        #position-badge {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 500;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(10, 10, 10, 0.92);
+            color: var(--ink-1);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        /* Floating message so it is visible wherever the user has scrolled to */
         .error-banner {
-            display: none;
-            width: min(92vw, 600px);
-            margin: 12px auto 0;
-            padding: 12px 16px;
-            border-radius: 10px;
+            position: fixed;
+            top: 76px;
+            left: 50%;
+            z-index: 900;
+            width: min(92vw, 420px);
+            padding: 12px 18px;
+            border-radius: 12px;
             border: 1px solid rgba(248, 113, 113, 0.7);
-            background: rgba(127, 29, 29, 0.5);
+            background: rgba(127, 29, 29, 0.95);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
             color: #fee2e2;
             font-size: 0.92rem;
+            font-weight: 600;
             text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, -12px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
         }
 
         .error-banner.visible {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+            transition-delay: 0s;
         }
 
         /* ============ FOOTER ============ */
         footer {
             width: 100%;
             text-align: center;
-            padding: 20px 16px 40px;
+            padding: 56px 16px 0;
             color: var(--ink-1);
             font-size: 0.8rem;
+        }
+
+        footer h2 {
+            margin: 0 0 22px;
+            font-family: var(--font-display);
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            line-height: 1.2;
+            color: var(--ink-0);
+        }
+
+        footer h2 em {
+            font-style: normal;
+            color: var(--green-1);
+        }
+
+        .cta-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 999px;
+            background: var(--green-1);
+            color: #050505;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .cta-btn:hover {
+            background: var(--green-2);
+            transform: translateY(-2px);
+        }
+
+        footer p {
+            margin: 34px 0 24px;
+        }
+
+        .site-end .marquee {
+            margin-top: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
         }
 
         footer.hidden {
@@ -312,11 +604,22 @@
 <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-        <div class="navbar-brand">📦 Checkboxes</div>
+        <div class="navbar-brand"><span class="brand-icon">✓</span> Checkboxes</div>
         <div class="auth-section">
-            <span class="user-display" id="userDisplay"></span>
-            <button class="auth-btn" id="loginBtn" onclick="showLoginModal()" style="display:none;">Login</button>
-            <button class="auth-btn logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none;">Logout</button>
+            <div class="profile" id="profileMenu" tabindex="0" aria-haspopup="true">
+                <img class="user-avatar" id="userAvatarImg" alt="" referrerpolicy="no-referrer">
+                <div class="user-avatar" id="userAvatarInitial"></div>
+                <div class="profile-popup" role="menu">
+                    <div class="popup-card">
+                        <div class="popup-user">
+                            <div class="popup-name" id="popupName"></div>
+                            <div class="popup-email" id="popupEmail"></div>
+                        </div>
+                        <button class="popup-item" role="menuitem" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ Back to top</button>
+                        <button class="popup-item danger" role="menuitem" onclick="handleLogout()">⎋ Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -334,10 +637,35 @@
         </div>
     </div>
 
+    <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+            <span>Real-time</span><span>✳</span><span>Multiplayer</span><span>✳</span><span>1,000,000 Checkboxes</span><span>✳</span><span>Shared Canvas</span><span>✳</span>
+            <span>Real-time</span><span>✳</span><span>Multiplayer</span><span>✳</span><span>1,000,000 Checkboxes</span><span>✳</span><span>Shared Canvas</span><span>✳</span>
+        </div>
+    </div>
+
     <header class="hidden">
-        <h1>One Million Checkboxes</h1>
-        <p class="subtitle">A pointless, glorious shared canvas of 1,000,000 checkboxes.</p>
+        <svg class="watermark" viewBox="0 0 1000 150" aria-hidden="true">
+            <text x="0" y="125" font-size="150" textLength="1000" lengthAdjust="spacingAndGlyphs">CHECKBOXES</text>
+        </svg>
+        <h1>One Million <em>Checkboxes</em></h1>
+        <p class="subtitle">A pointless, glorious shared canvas. Tick a box and everyone sees it instantly.</p>
     </header>
+
+    <section class="stats hidden" id="stats">
+        <div class="stat-card">
+            <div class="stat-label">Total boxes</div>
+            <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Checked</div>
+            <div class="stat-value accent" id="stat-checked">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Filled</div>
+            <div class="stat-value" id="stat-percent">0%</div>
+        </div>
+    </section>
 
     <main class="hidden">
         <div id="container"></div>
@@ -345,8 +673,20 @@
     </main>
 
     <footer class="hidden">
-        Built for fun &middot; every box remembers nothing &middot; refresh to reset
+        <h2>Let's Tick an <em>Amazing Million</em> Together!</h2>
+        <button class="cta-btn" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">Back to top</button>
+        <p>Built for fun &middot; changes are shared live with everyone</p>
+        <div class="site-end">
+            <div class="marquee" aria-hidden="true">
+                <div class="marquee-track">
+                    <span>Tick</span><span>✳</span><span>Share</span><span>✳</span><span>Repeat</span><span>✳</span><span>Together</span><span>✳</span>
+                    <span>Tick</span><span>✳</span><span>Share</span><span>✳</span><span>Repeat</span><span>✳</span><span>Together</span><span>✳</span>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    <div id="position-badge"></div>
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -357,7 +697,6 @@
 
         const socket = io()
         const container = document.getElementById('container');
-        const checkbox_count = 100;
         const errorBanner = document.getElementById('error-banner');
 
         function showError(data) {
@@ -372,47 +711,119 @@
             }, 2500);
         }
 
-        socket.on("server:error", showError);
+        const CELL = 24, GAP = 6, STEP = CELL + GAP, PAD = 20, BUFFER_ROWS = 3;
+        const positionBadge = document.getElementById('position-badge');
+        const viewport = document.createElement('div');
+        viewport.id = 'viewport';
+        container.appendChild(viewport);
+
+        let total = 0;
+        let bits = new Uint8Array(0);
+        let cols = 1, rows = 0, firstRow = -1, lastRow = -1, frame = 0;
+
+        const getBit = (i) => (bits[i >> 3] >> (7 - (i & 7))) & 1;
+        let checkedCount = 0;
+        const statChecked = document.getElementById('stat-checked');
+        const statPercent = document.getElementById('stat-percent');
+        const statTotal = document.getElementById('stat-total');
+
+        function updateStats() {
+            statTotal.textContent = total.toLocaleString();
+            statChecked.textContent = checkedCount.toLocaleString();
+            statPercent.textContent = `${(total ? (checkedCount / total) * 100 : 0).toFixed(2)}%`;
+        }
+
+        const setBit = (i, on) => {
+            const was = getBit(i);
+            const mask = 1 << (7 - (i & 7));
+            bits[i >> 3] = on ? (bits[i >> 3] | mask) : (bits[i >> 3] & ~mask);
+            checkedCount += (on ? 1 : 0) - was;
+            updateStats();
+        };
+
+        function layout() {
+            cols = Math.max(1, Math.floor((container.clientWidth - 2 * PAD + GAP) / STEP));
+            rows = Math.ceil(total / cols);
+            container.style.height = `${rows * STEP - GAP + 2 * PAD}px`;
+            viewport.style.gridTemplateColumns = `repeat(${cols}, ${CELL}px)`;
+            firstRow = lastRow = -1;
+        }
+
+        function render() {
+            frame = 0;
+            if (!total) return;
+            const top = -container.getBoundingClientRect().top - PAD;
+            const shownFrom = Math.min(total, Math.max(0, Math.floor(top / STEP)) * cols + 1);
+            const shownTo = Math.min(total, Math.ceil((top + window.innerHeight) / STEP) * cols);
+            positionBadge.textContent = `Boxes ${shownFrom.toLocaleString()} – ${Math.max(shownFrom, shownTo).toLocaleString()} of ${total.toLocaleString()}`;
+            const first = Math.max(0, Math.floor(top / STEP) - BUFFER_ROWS);
+            const last = Math.min(rows - 1, Math.ceil((top + window.innerHeight) / STEP) + BUFFER_ROWS);
+            if (first === firstRow && last === lastRow) return;
+            firstRow = first; lastRow = last;
+
+            viewport.style.top = `${PAD + first * STEP}px`;
+            const fragment = document.createDocumentFragment();
+            const end = Math.min(total, (last + 1) * cols);
+            for (let i = first * cols; i < end; i++) {
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `checkbox-${i}`;
+                input.dataset.index = i;
+                input.checked = getBit(i) === 1;
+                fragment.appendChild(input);
+            }
+            viewport.replaceChildren(fragment);
+        }
+
+        const scheduleRender = () => { if (!frame) frame = requestAnimationFrame(render); };
+        window.addEventListener('scroll', scheduleRender, { passive: true });
+        window.addEventListener('resize', () => { layout(); scheduleRender(); });
+
+        viewport.addEventListener('change', (event) => {
+            const index = Number(event.target.dataset.index);
+            const checked = event.target.checked;
+            setBit(index, checked);
+            socket.emit("client:checkbox:change", { index, checked });
+        });
+
+        socket.on("server:error", (data) => {
+            showError(data);
+            // Undo only the rejected box, using the real state sent by the server
+            if (total && Number.isInteger(data?.index)) {
+                setBit(data.index, data.checked);
+                const input = document.getElementById(`checkbox-${data.index}`);
+                if (input) input.checked = data.checked;
+            }
+        });
         socket.on("Server:error", showError);
 
-        socket.on("server:checkbox:change", (data) => {
-            const { index, checked } = data
+        socket.on("server:checkbox:change", ({ index, checked }) => {
+            if (!total) return;
+            setBit(index, checked);
             const input = document.getElementById(`checkbox-${index}`);
-            if (input) {
-                input.checked = checked
-            }
-        })
+            if (input) input.checked = checked;
+        });
 
         const fetchStatefromServer = async () => {
             try {
-                while (container.firstChild) {
-                    container.removeChild(container.firstChild);
+                const res = await fetch('/checkboxes', { method: "GET" });
+                const { count, bitmap } = await res.json();
+                const binary = atob(bitmap);
+                bits = new Uint8Array(binary.length);
+                checkedCount = 0;
+                for (let i = 0; i < binary.length; i++) {
+                    const byte = bits[i] = binary.charCodeAt(i);
+                    for (let b = byte; b; b &= b - 1) checkedCount++;
                 }
-                const data = await fetch('/checkboxes', { method: "GET" });
-                const response = await data.json();
-                if (response && response.checkboxes) {
-                    const fragment = document.createDocumentFragment();
-                    response.checkboxes.forEach((checked, index) => {
-                        const input = document.createElement('input');
-                        input.type = 'checkbox';
-                        input.id = `checkbox-${index}`;
-                        input.checked = checked
-                        input.dataset.index = index;
-                        input.addEventListener('change', (event) => {
-                            const checked = event.target.checked
-                            socket.emit("client:checkbox:change", { index, checked });
-                            fetchStatefromServer()
-                        })
-                        fragment.appendChild(input);
-                    })
-                    container.appendChild(fragment);
-                }
+                total = count;
+                updateStats();
+                layout();
+                render();
             } catch (error) {
                 showError({ error: 'Failed to fetch checkbox state from server.' });
             }
         }
 
-        // ============ OIDC LOGIN FLOW ============
 
         function showLoginModal() {
             document.getElementById("loginModal").classList.remove("hidden");
@@ -476,6 +887,29 @@
         }
 
 
+        function showUserAvatar(userData) {
+            const img = document.getElementById("userAvatarImg");
+            const initial = document.getElementById("userAvatarInitial");
+            const name = userData.name || userData.email || "User";
+            const pictureUrl = userData.picture || userData.image || userData.avatar || userData.avatar_url;
+
+            initial.textContent = name.trim().charAt(0).toUpperCase();
+            const showInitial = () => {
+                img.classList.remove("visible");
+                initial.classList.add("visible");
+            };
+
+            if (!pictureUrl) return showInitial();
+            img.onerror = showInitial;
+            img.onload = () => {
+                initial.classList.remove("visible");
+                img.classList.add("visible");
+            };
+            img.alt = name;
+            img.src = pictureUrl;
+            showInitial(); // placeholder until the image has loaded
+        }
+
         function checkAuth() {
             const user = localStorage.getItem("user");
             const accessToken = localStorage.getItem("access_token");
@@ -483,23 +917,26 @@
             if (user && accessToken) {
                 const userData = JSON.parse(user);
                 
-                document.getElementById("userDisplay").textContent = `Welcome, ${userData.name || "User"}!`;
-                document.getElementById("logoutBtn").style.display = "block";
+                document.getElementById("popupName").textContent = userData.name || "User";
+                document.getElementById("popupEmail").textContent = userData.email || "";
+                showUserAvatar(userData);
+                document.getElementById("profileMenu").classList.add("visible");
                 
                 document.getElementById("loginModal").classList.add("hidden");
                 
                 document.querySelector("header").classList.remove("hidden");
+                document.getElementById("stats").classList.remove("hidden");
                 document.querySelector("main").classList.remove("hidden");
                 document.querySelector("footer").classList.remove("hidden");
                 
                 fetchStatefromServer();
             } else {
-                 document.getElementById("loginBtn").style.display = "none";
-                document.getElementById("logoutBtn").style.display = "none";
+                document.getElementById("profileMenu").classList.remove("visible");
                 
                 document.getElementById("loginModal").classList.remove("hidden");
                 
                 document.querySelector("header").classList.add("hidden");
+                document.getElementById("stats").classList.add("hidden");
                 document.querySelector("main").classList.add("hidden");
                 document.querySelector("footer").classList.add("hidden");
             }

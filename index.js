@@ -7,7 +7,8 @@ import { Server } from "socket.io";
 
 
 const checkboxes_count = 1000000
-const checkbox_key = "checkbox-state:v2"
+const checkbox_key = "checkbox-bitmap:v1"
+const rate_limit_ms = 5000
 
 async function main() {
     const app = express();
@@ -44,26 +45,19 @@ async function main() {
     io.on('connection', (socket) => {
         console.log(`Socket Id ${socket.id}`)
         socket.on("client:checkbox:change", async (data) => {
-            const existing_state = await redis.get(checkbox_key)
-            const lastOperationTime = await redis.get(`rate-limiting:${socket.id}`);
+            const index = data?.index
+            if (!Number.isInteger(index) || index < 0 || index >= checkboxes_count) return
+            const checked = Boolean(data.checked)
 
-            if (lastOperationTime) {
-                const timeElapsed = Date.now() - lastOperationTime;
-                if (timeElapsed < 5.5 * 1000) {
-                    socket.emit("server:error", { error: "Please wait!" })
-                    return
-                }
+            const allowed = await redis.set(`rate-limiting:${socket.id}`, 1, 'PX', rate_limit_ms, 'NX')
+            if (!allowed) {
+                const current = await redis.getbit(checkbox_key, index)
+                socket.emit("server:error", { error: `Slow down! You can tick one checkbox every ${(rate_limit_ms / 1000).toFixed(1)}s.`, index, checked: current === 1 })
+                return
             }
-            await redis.set(`rate-limiting:${socket.id}`, Date.now());
 
-            if (existing_state) {
-                const rawData = JSON.parse(existing_state);
-                rawData[data.index] = data.checked
-                await redis.set(checkbox_key, JSON.stringify(rawData))
-            } else {
-                await redis.set(checkbox_key, JSON.stringify(new Array(checkboxes_count).fill(false)))
-            }
-            await publisher.publish("checkbox:change", JSON.stringify(data))
+            await redis.setbit(checkbox_key, index, checked ? 1 : 0)
+            await publisher.publish("checkbox:change", JSON.stringify({ index, checked }))
         })
     })
 
@@ -78,12 +72,10 @@ async function main() {
     });
 
     app.get('/checkboxes', async (req, res) => {
-        const existingState = await redis.get(checkbox_key);
-        if (existingState) {
-            const rawData = JSON.parse(existingState);
-            return res.json({ checkboxes: rawData })
-        }
-        return res.json({ checkboxes: new Array(checkboxes_count).fill(false) });
+        const stored = (await redis.getBuffer(checkbox_key)) ?? Buffer.alloc(0)
+        const bitmap = Buffer.alloc(Math.ceil(checkboxes_count / 8))
+        stored.copy(bitmap, 0, 0, bitmap.length)
+        return res.json({ count: checkboxes_count, bitmap: bitmap.toString('base64') })
     })
 
     server.listen(port, () => {
