@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Million Checkboxes</title>
+    <style>
+        :root {
+            --bg-0: #05070d;
+            --bg-1: #0a0e1a;
+            --border: #1c2740;
+            --blue-1: #3b82f6;
+            --blue-2: #60a5fa;
+            --blue-glow: #2563eb;
+            --ink-0: #eaf1ff;
+            --ink-1: #8ea2c6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 15% 0%, rgba(37, 99, 235, 0.20), transparent 45%),
+                radial-gradient(circle at 85% 10%, rgba(96, 165, 250, 0.14), transparent 40%),
+                linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+            background-attachment: fixed;
+            color: var(--ink-0);
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ============ NAVBAR ============ */
+        .navbar {
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .navbar-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--blue-2);
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-display {
+            font-size: 0.9rem;
+            color: var(--ink-1);
+        }
+
+        .auth-btn {
+            padding: 8px 20px;
+            border: 1px solid var(--blue-1);
+            background: transparent;
+            color: var(--blue-2);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .auth-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--blue-2);
+            color: var(--blue-1);
+        }
+
+        .logout-btn {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #fca5a5;
+            color: #ef4444;
+        }
+
+        /* ============ HEADER ============ */
+        header {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            padding: 48px 20px 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, var(--blue-2), #93c5fd 40%, var(--blue-1));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            margin: 10px 0 0;
+            color: var(--ink-1);
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
+
+        /* ============ LOGIN OVERLAY ============ */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 13, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-card {
+            background: linear-gradient(135deg, rgba(10, 14, 26, 0.95) 0%, rgba(5, 7, 13, 0.95) 100%);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 14px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-card h2 {
+            margin: 0 0 30px;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--blue-2), var(--blue-1));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .login-card p {
+            color: var(--ink-1);
+            margin: 0 0 30px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--blue-1), var(--blue-glow));
+            border: none;
+            color: white;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--ink-1);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            border-color: var(--blue-1);
+            color: var(--blue-2);
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        main {
+            width: 100%;
+            max-width: 1100px;
+            padding: 0 16px 60px;
+        }
+
+        main.hidden {
+            display: none;
+        }
+
+        #container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 24px);
+            gap: 6px;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border);
+        }
+
+        #container input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            margin: 0;
+            border-radius: 5px;
+            border: 1px solid #263252;
+            background: #0b0f1c;
+            cursor: pointer;
+            transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+        }
+
+        #container input[type="checkbox"]:hover {
+            border-color: var(--blue-2);
+            transform: scale(1.1);
+        }
+
+        #container input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, var(--blue-1), var(--blue-glow));
+            border-color: var(--blue-2);
+        }
+
+        #container input[type="checkbox"]:checked::after {
+            content: "";
+            display: block;
+            width: 7px;
+            height: 12px;
+            margin: 2px auto;
+            border-right: 2px solid #05070d;
+            border-bottom: 2px solid #05070d;
+            transform: rotate(45deg) translateY(-1px);
+        }
+
+        .error-banner {
+            display: none;
+            width: min(92vw, 600px);
+            margin: 12px auto 0;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(248, 113, 113, 0.7);
+            background: rgba(127, 29, 29, 0.5);
+            color: #fee2e2;
+            font-size: 0.92rem;
+            text-align: center;
+        }
+
+        .error-banner.visible {
+            display: block;
+        }
+
+        /* ============ FOOTER ============ */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px 16px 40px;
+            color: var(--ink-1);
+            font-size: 0.8rem;
+        }
+
+        footer.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+        }
+
+        .spinner {
+            font-size: 48px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-brand">📦 Checkboxes</div>
+        <div class="auth-section">
+            <span class="user-display" id="userDisplay"></span>
+            <button class="auth-btn" id="loginBtn" onclick="showLoginModal()" style="display:none;">Login</button>
+            <button class="auth-btn logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none;">Logout</button>
+        </div>
+    </nav>
+
+    <div id="loginModal" class="login-overlay">
+        <div class="login-card">
+            <div id="loginContent">
+                <h2>🔐 Login Required</h2>
+                <p>Sign in with OIDC Server to access checkboxes</p>
+                <button class="login-btn" onclick="startOIDCFlow()">Login with OIDC</button>
+            </div>
+            <div id="loginLoading" class="loading-spinner">
+                <div class="spinner">⏳</div>
+                <p style="color: var(--ink-1);">Redirecting to login...</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="hidden">
+        <h1>One Million Checkboxes</h1>
+        <p class="subtitle">A pointless, glorious shared canvas of 1,000,000 checkboxes.</p>
+    </header>
+
+    <main class="hidden">
+        <div id="container"></div>
+        <div id="error-banner" class="error-banner" aria-live="polite"></div>
+    </main>
+
+    <footer class="hidden">
+        Built for fun &middot; every box remembers nothing &middot; refresh to reset
+    </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const OIDC_SERVER_URL = "https://oidc-server-be.vercel.app/";
+        const CLIENT_ID = "671c904ed6a1bfd17ec18118";
+        const REDIRECT_URI = "http://localhost:5000/callback";
+
+        const socket = io()
+        const container = document.getElementById('container');
+        const checkbox_count = 100;
+        const errorBanner = document.getElementById('error-banner');
+
+        function showError(data) {
+            const errorMessage = data?.error || 'Something went wrong.';
+            errorBanner.textContent = errorMessage;
+            errorBanner.classList.add('visible');
+
+            window.clearTimeout(showError.timeoutId);
+            showError.timeoutId = window.setTimeout(() => {
+                errorBanner.classList.remove('visible');
+                errorBanner.textContent = '';
+            }, 2500);
+        }
+
+        socket.on("server:error", showError);
+        socket.on("Server:error", showError);
+
+        socket.on("server:checkbox:change", (data) => {
+            const { index, checked } = data
+            const input = document.getElementById(`checkbox-${index}`);
+            if (input) {
+                input.checked = checked
+            }
+        })
+
+        const fetchStatefromServer = async () => {
+            try {
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                const data = await fetch('/checkboxes', { method: "GET" });
+                const response = await data.json();
+                if (response && response.checkboxes) {
+                    const fragment = document.createDocumentFragment();
+                    response.checkboxes.forEach((checked, index) => {
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.id = `checkbox-${index}`;
+                        input.checked = checked
+                        input.dataset.index = index;
+                        input.addEventListener('change', (event) => {
+                            const checked = event.target.checked
+                            socket.emit("client:checkbox:change", { index, checked });
+                            fetchStatefromServer()
+                        })
+                        fragment.appendChild(input);
+                    })
+                    container.appendChild(fragment);
+                }
+            } catch (error) {
+                showError({ error: 'Failed to fetch checkbox state from server.' });
+            }
+        }
+
+        // ============ OIDC LOGIN FLOW ============
+
+        function showLoginModal() {
+            document.getElementById("loginModal").classList.remove("hidden");
+        }
+
+        function closeLoginModal() {
+            document.getElementById("loginModal").classList.add("hidden");
+        }
+
+        function generateRandomString(length = 43) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+            let result = "";
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        async function generateCodeChallenge(codeVerifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+            const digest = await crypto.subtle.digest("SHA-256", data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_")
+                .replace(/=/g, "");
+        }
+
+        async function startOIDCFlow() {
+            try {
+                document.getElementById("loginContent").style.display = "none";
+                document.getElementById("loginLoading").style.display = "block";
+
+                const codeVerifier = generateRandomString(128);
+                const codeChallenge = await generateCodeChallenge(codeVerifier);
+                
+                const state = generateRandomString();
+                const nonce = generateRandomString();
+                
+                localStorage.setItem("codeVerifier", codeVerifier);
+                localStorage.setItem("state", state);
+                localStorage.setItem("nonce", nonce);
+                
+                const authUrl = new URL(`${OIDC_SERVER_URL}authorize`);
+                authUrl.searchParams.set("client_id", CLIENT_ID);
+                authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
+                authUrl.searchParams.set("response_type", "code");
+                authUrl.searchParams.set("scope", "openid profile email");
+                authUrl.searchParams.set("state", state);
+                authUrl.searchParams.set("nonce", nonce);
+                authUrl.searchParams.set("code_challenge", codeChallenge);
+                authUrl.searchParams.set("code_challenge_method", "S256");
+                
+                console.log("🔗 Redirecting to OIDC server...");
+                window.location.href = authUrl.toString();
+            } catch (error) {
+                alert("Error: " + error.message);
+                document.getElementById("loginContent").style.display = "block";
+                document.getElementById("loginLoading").style.display = "none";
+            }
+        }
+
+
+        function checkAuth() {
+            const user = localStorage.getItem("user");
+            const accessToken = localStorage.getItem("access_token");
+            
+            if (user && accessToken) {
+                const userData = JSON.parse(user);
+                
+                document.getElementById("userDisplay").textContent = `Welcome, ${userData.name || "User"}!`;
+                document.getElementById("logoutBtn").style.display = "block";
+                
+                document.getElementById("loginModal").classList.add("hidden");
+                
+                document.querySelector("header").classList.remove("hidden");
+                document.querySelector("main").classList.remove("hidden");
+                document.querySelector("footer").classList.remove("hidden");
+                
+                fetchStatefromServer();
+            } else {
+                 document.getElementById("loginBtn").style.display = "none";
+                document.getElementById("logoutBtn").style.display = "none";
+                
+                document.getElementById("loginModal").classList.remove("hidden");
+                
+                document.querySelector("header").classList.add("hidden");
+                document.querySelector("main").classList.add("hidden");
+                document.querySelector("footer").classList.add("hidden");
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("id_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("codeVerifier");
+            localStorage.removeItem("state");
+            localStorage.removeItem("nonce");
+            
+            window.location.href = "/";
+        }
+
+
+        window.addEventListener('load', async () => {
+            checkAuth();
+        })
+
+    </script>
+</body>
+
+</html>
